@@ -8,7 +8,7 @@ export class PSAAPIError extends Error {
   }
 }
 
-const getCertificationNumber = (url: string) => {
+export const getCertificationNumber = (url: string) => {
   const match = url.match(/\/cert\/(\d+)/);
   return match ? match[1] : null;  
 };

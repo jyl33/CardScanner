@@ -19,5 +19,7 @@ export interface NormalizedPSACard {
       total_population_with_qualifier: number;
       variety: string;
       year: string;
+      cost?: number;
+      value?: number;
     }
   }

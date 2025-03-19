@@ -18,6 +18,8 @@ export type PSAResponse = {
       TotalPopulationWithQualifier: number;
       Variety: string;
       Year: string;
+      Cost?: number; 
+      Value?: number;
     };
   };
   

@@ -1,5 +1,5 @@
 export interface DatabasePSACard {
-      id? : string;
+      id : number;
       brand: string;
       card_grade: string;
       card_number: string;
@@ -18,4 +18,13 @@ export interface DatabasePSACard {
       total_population_with_qualifier: number;
       variety: string;
       year: string;
+      cost?: number;
+      value?: number;
+      status?: string;
+  }
+
+  export interface databasePSACardResponse {
+    id: string;
+    data: DatabasePSACard | null;
+    error: Error | null;
   }

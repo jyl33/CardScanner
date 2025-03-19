@@ -5,17 +5,19 @@ import { verifyInstallation } from 'nativewind';
 import { useCameraPermissions } from "expo-camera";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text"
+import { Redirect } from "expo-router";
 
-export default function Home() {
-  const [permission, requestPermission] = useCameraPermissions();
-  const isPermissionGranted = Boolean(permission?.granted);
+export default function StartPage() {
+  /* const [permission, requestPermission] = useCameraPermissions();
+  const isPermissionGranted = Boolean(permission?.granted); */
+  //MOVE THIS INTO SETTINGS SCREEN
 
   verifyInstallation();
 
 
 
-  return (
-    <SafeAreaView style={styles.container}>
+  return <Redirect href="./(tabs)/inventory" />;
+    {/* <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ title: "Home", headerShown: true }} />
       <Text style={{fontSize: 40, lineHeight:40}}>PSA Card Scanner</Text>
       <View style={{ gap: 20 }}>
@@ -33,15 +35,15 @@ export default function Home() {
           </Button>
         </Link>
       </View>
-    </SafeAreaView>
-  );
+    </SafeAreaView>*/}
+   
  }
 
-const styles = StyleSheet.create({
+/* const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "space-around",
     paddingVertical: 80,
   },});
- 
+  */

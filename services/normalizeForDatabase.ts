@@ -22,7 +22,8 @@ export const normalizeForDB = (psaResponse: PSAResponse): NormalizedPSACard => {
       total_population: psaResponse.PSACert.TotalPopulation,
       total_population_with_qualifier: psaResponse.PSACert.TotalPopulationWithQualifier,
       variety: psaResponse.PSACert.Variety,
-      year: psaResponse.PSACert.Year
+      year: psaResponse.PSACert.Year,
+      cost: psaResponse.PSACert.Cost
     }
   };
 };
