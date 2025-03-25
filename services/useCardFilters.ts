@@ -59,8 +59,15 @@ export const useCardFilters = (cards: DatabasePSACard[]) => {
     };
   }, [cards]);
 
+  useEffect(()=>{
+      resetFilters();
+  }, []) 
+
+
+
   // Update max price and year ranges when filter options load
   useEffect(() => {
+
     setMaxPrice(filterOptions.maxPrice.toString());
     
     // Only set min/max years if they are not already set
@@ -75,8 +82,11 @@ export const useCardFilters = (cards: DatabasePSACard[]) => {
   // Count active filters
   useEffect(() => {
     let count = 0;
-    if (selectedGrades.size > 0) count++;
-    if (selectedStatuses.size > 0) count++;
+    if (selectedGrades.size > 0) count = count + selectedGrades.size;
+    if (selectedStatuses.size > 0) count = count + selectedStatuses.size;
+
+    console.log("selected grades size", selectedGrades.size)
+    console.log("Selected Statuses size", selectedStatuses.size)
     
     const minPriceValue = parseFloat(minPrice);
     const maxPriceValue = parseFloat(maxPrice);
@@ -124,12 +134,12 @@ export const useCardFilters = (cards: DatabasePSACard[]) => {
       );
     }
     
-    // Apply status filter
+   /*  // Apply status filter
     if (selectedStatuses.size > 0) {
       filtered = filtered.filter(card => 
         card.status && selectedStatuses.has(card.status)
       );
-    }
+    } */
     
     // Apply year filter with range
     const minYearValue = parseInt(minYear);
@@ -180,6 +190,12 @@ export const useCardFilters = (cards: DatabasePSACard[]) => {
         return passesMin && passesMax;
       });
     }
+
+    if (selectedStatuses.size > 0) {
+      filtered = filtered.filter(card => 
+        card.status && selectedStatuses.has(card.status)
+      );
+    } 
     
     return filtered;
   }, [
@@ -196,7 +212,7 @@ export const useCardFilters = (cards: DatabasePSACard[]) => {
   // Reset all filters
   const resetFilters = useCallback(() => {
     setSelectedGrades(new Set());
-    setSelectedStatuses(new Set());
+    setSelectedStatuses(new Set(['In Stock']));
     setMinPrice("0");
     setMaxPrice(filterOptions.maxPrice ? filterOptions.maxPrice.toString() : ""); // Handle potential undefined
     setMinYear(filterOptions.minYear || ""); // Handle potential undefined
@@ -220,11 +236,20 @@ export const useCardFilters = (cards: DatabasePSACard[]) => {
   const toggleStatus = useCallback((status: string) => {
     setSelectedStatuses(prev => {
       const updated = new Set(prev);
+
+      console.log("status selected", status);
+      
+      // If the status is already selected, remove it
       if (updated.has(status)) {
+        console.log("already has status, removing", updated.has(status))
         updated.delete(status);
       } else {
+        console.log("new status, adding", updated.has(status))
+
+        // If the status is not selected, add it
         updated.add(status);
       }
+      
       return updated;
     });
   }, []);

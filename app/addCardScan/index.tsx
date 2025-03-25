@@ -23,6 +23,9 @@ const AddCardScan = () => {
     const inputRef = useRef<TextInput>(null); // Specify the type for the ref
     const [costError, setCostError] = useState<string>('');
 
+    const [ask, setAsk] = useState('');
+    const [askError, setAskError] = useState<string>('');
+
     const [notification, setNotification] = useState<{
         message: string;
         type: 'success' | 'error';
@@ -38,7 +41,7 @@ const AddCardScan = () => {
     }, []);
 
 
-      const validateAndFormatCost = (value: string): number | null => {
+      const validateAndFormat = (value: string): number | null => {
         const cleanValue = value.replace(/[^\d.]/g, '');
         const number = parseFloat(cleanValue);
         
@@ -51,12 +54,19 @@ const AddCardScan = () => {
 
     const handleConfirm = async () => {
     if (item) {
-        const validatedCost = validateAndFormatCost(cost);
+        const validatedCost = validateAndFormat(cost);
         
         if (validatedCost === null) {
             setCostError('Please enter a valid cost');
             return;
         } else item.PSACert.Cost = cost;
+
+        const validatedAsk = validateAndFormat(ask)
+
+        if(validatedAsk === null) {
+          setAskError('Please enter a valid ask');
+          return;
+        } else item.PSACert.Ask = ask;
         
 
         console.log("Adding item to inventory:", item);
@@ -104,7 +114,7 @@ const AddCardScan = () => {
                 {item.PSACert.CardGrade}
                 </Text>
                 <Text className="text-lg text-center">
-                PSA Cert Number: {item.PSACert.CertNumber}
+                  PSA Cert Number: {item.PSACert.CertNumber}
                 </Text>
                   <View className="w-full space-y-2">
                     <View className="grid w-full items-start gap-1.5">
@@ -120,6 +130,19 @@ const AddCardScan = () => {
                             onChangeText={setCost}
                             editable={true}
                             inputAccessoryViewID={inputAccessoryViewID}
+                          />
+                        </View>
+                      </View>
+                      <Label htmlFor="cost">Ask</Label>
+                      <View className="relative w-full">
+                        <View className="flex flex-row items-center">
+                          <Text className="pr-1">$</Text>
+                          <Input
+                            className="flex-1 pl-1"
+                            keyboardType="decimal-pad"
+                            value={ask}
+                            onChangeText={setAsk}
+                            editable={true}
                           />
                         </View>
                       </View>

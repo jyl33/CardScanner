@@ -19,8 +19,23 @@ export interface DatabasePSACard {
       variety: string;
       year: string;
       cost?: number;
+      ask?: number;
       value?: number;
       status?: string;
+      user_id: string;
+  }
+
+  export interface ImportCard {
+    subject: string;
+    year?: string;
+    brand?: string;
+    cost?: number;
+    ask?: number;
+    card_grade?: string;
+    variety?: string;
+    value?: number;
+    status?: string;
+    user_id?: string;
   }
 
   export interface databasePSACardResponse {

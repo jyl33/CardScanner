@@ -9,14 +9,14 @@ import {
   StatusBar,
   StyleSheet,
 } from "react-native";
-import  psaService from "../api/services/psaService"; // Import PSAResponse type
+import psaService from "../api/services/psaService";
 import { PSAResponse } from '~/types/psaResponse';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Scanner() {
   const qrLock = useRef(false);
   const appState = useRef(AppState.currentState);
-  const [scannedItem, setScannedItem] = useState<PSAResponse | null>(null); 
+  const [scannedItem, setScannedItem] = useState<PSAResponse | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -35,21 +35,27 @@ export default function Scanner() {
     };
   }, []);
 
-  // Reset state when the component mounts or comes into focus
- useFocusEffect(
-  React.useCallback(() => {
-    console.log("Resetting card state and QR Lock");
-    setScannedItem(null); // Reset card state
-    qrLock.current = false; // Reset QR lock
-  }, []) // This effect runs whenever the component is focused
-);
+  // Enable camera when component is focused, disable when unfocused
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log("Scanner in focus - activating camera");
+      setIsCameraActive(true);
+      setScannedItem(null); // Reset card state
+      qrLock.current = false; // Reset QR lock
+      
+      // This return function runs when the screen loses focus
+      return () => {
+        console.log("Scanner losing focus - deactivating camera");
+        setIsCameraActive(false);
+      };
+    }, [])
+  );
 
   const onBarcodeScanned = async ({ data }: { data: string }) => {
     console.log("data", data);
     if (data && !qrLock.current) { // Check if a scan has already occurred
       qrLock.current = true;
-      //setHasScanned(true); // Set the flag to true to prevent further scans
-      const result = await psaService.fetchCertification(data); // Get the result without type assertion
+      const result = await psaService.fetchCertification(data);
       if (result) {
         // Wrap the result in a PSAResponse object
         const psaResponse: PSAResponse = {
@@ -66,14 +72,6 @@ export default function Scanner() {
     }
   };
 
-  const handleConfirm = () => {
-    // Logic to add the item to the inventory
-    console.log("Item added to inventory:", scannedItem);
-    //setHasScanned(false); // Reset the scan flag to allow new scans
-  };
-
-
-
   return (
     <SafeAreaView style={StyleSheet.absoluteFillObject}>
       <Stack.Screen
@@ -83,11 +81,13 @@ export default function Scanner() {
         }}
       />
       {Platform.OS === "android" ? <StatusBar hidden /> : null}
-      <CameraView
-        style={StyleSheet.absoluteFillObject}
-        facing="back"
-        onBarcodeScanned={onBarcodeScanned} // Use the updated function
-      />
+      {isCameraActive && (
+        <CameraView
+          style={StyleSheet.absoluteFillObject}
+          facing="back"
+          onBarcodeScanned={onBarcodeScanned}
+        />
+      )}
     </SafeAreaView>
   );
 }

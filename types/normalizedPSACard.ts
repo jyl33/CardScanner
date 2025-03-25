@@ -20,6 +20,8 @@ export interface NormalizedPSACard {
       variety: string;
       year: string;
       cost?: number;
+      ask?: number;
       value?: number;
+      user_id: string;
     }
   }

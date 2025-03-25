@@ -93,13 +93,11 @@ const CardFilterModal: React.FC<CardFilterModalProps> = ({
                     style={{
                       ...cardTableStyles.filterOption,
                       backgroundColor: selectedGrades.has(grade) ? '#e0f2fe' : '#f3f4f6',
-                      borderWidth: selectedGrades.has(grade) ? 1 : 0,
-                      borderColor: '#0ea5e9'
+                      borderColor: selectedGrades.has(grade) ? '#0ea5e9' : '#f3f4f6',
                     }}
                   >
                     <Text style={{ 
                       color: selectedGrades.has(grade) ? '#0ea5e9' : '#6b7280',
-                      fontWeight: selectedGrades.has(grade) ? 'bold' : 'normal'
                     }}>
                       {grade}
                     </Text>
@@ -110,30 +108,33 @@ const CardFilterModal: React.FC<CardFilterModalProps> = ({
 
             {/* Status Filter */}
             <View style={cardTableStyles.filterSection}>
-              <Text style={cardTableStyles.filterSectionTitle}>Status</Text>
-              <View style={cardTableStyles.filterOptionsContainer}>
-                {filterOptions.statuses.map(status => (
+            <Text style={cardTableStyles.filterSectionTitle}>Status</Text>
+            <View style={cardTableStyles.filterOptionsContainer}>
+              {filterOptions.statuses.map(status => {
+                // Remove the isDefaultSelected logic - only use actual selection state
+                const isSelected = selectedStatuses.has(status);
+
+                return (
                   <TouchableOpacity 
                     key={status}
                     onPress={() => toggleStatus(status)}
                     style={{
                       ...cardTableStyles.filterOption,
-                      backgroundColor: selectedStatuses.has(status) ? '#e0f2fe' : '#f3f4f6',
-                      borderWidth: selectedStatuses.has(status) ? 1 : 0,
-                      borderColor: '#0ea5e9'
+                      backgroundColor: isSelected ? '#e0f2fe' : '#f3f4f6',
+                      borderColor: selectedStatuses.has(status) ? '#0ea5e9' : '#f3f4f6',
                     }}
                   >
                     <Text style={{ 
-                      color: selectedStatuses.has(status) ? '#0ea5e9' : '#6b7280',
-                      fontWeight: selectedStatuses.has(status) ? 'bold' : 'normal'
+                      color: isSelected ? '#0ea5e9' : '#6b7280',
+                      //fontWeight: isSelected ? 'bold' : 'normal'
                     }}>
                       {status}
                     </Text>
                   </TouchableOpacity>
-                ))}
-              </View>
+                );
+              })}
             </View>
-
+          </View>
             {/* Year Range Filter */}
             <View style={cardTableStyles.filterSection}>
               <Text style={cardTableStyles.filterSectionTitle}>Year Range</Text>

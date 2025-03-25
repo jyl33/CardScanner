@@ -163,6 +163,7 @@ export default function CardTableWithSelect() {
       <Stack.Screen
         options={{
           title: "Card Scanner",
+          gestureEnabled: false,
           headerShown: true,
           headerRight: () => (
             <Text onPress={viewCurrentOrder}>

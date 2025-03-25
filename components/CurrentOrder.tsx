@@ -187,7 +187,7 @@ export default function CurrentOrder() {
           {/* <Search size={20} color="#6b7280" style={{ marginRight: 8 }} /> */}
           <TextInput
             style={{ flex: 1, fontSize: 16 }}
-            placeholder="Search cards in order..."
+            placeholder="Search cards in order"
             value={searchQuery}
             onChangeText={setSearchQuery}
             clearButtonMode="while-editing"

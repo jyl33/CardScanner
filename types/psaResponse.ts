@@ -20,6 +20,7 @@ export type PSAResponse = {
       Year: string;
       Cost?: number; 
       Value?: number;
+      Ask?: number;
     };
   };
   

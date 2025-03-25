@@ -1,10 +1,17 @@
 import { supabase } from '~/utils/supabase'
 import  { PSAResponse }  from '~/types/psaResponse'
 import { normalizeForDB } from './normalizeForDatabase'
-import { DatabasePSACard, databasePSACardResponse } from '~/types/databasePSACard'
+import { DatabasePSACard, databasePSACardResponse, ImportCard } from '~/types/databasePSACard'
 import { Buyer } from '@/types/buyer'
 import { CreateOrder, CreateOrderItem, Order, OrderItem, OrderItemResponse, OrderResponse} from '@/types/order'
+
+
 export const databaseService = {
+
+  async getCurrentUserId(): Promise<string | null> {
+    const { data: { user } } = await supabase.auth.getUser()
+    return user?.id ?? null
+  },
 
   /* All PSA_CARD Helper Functions Here */
 
@@ -22,7 +29,7 @@ export const databaseService = {
     const { data, error } = await supabase
       .from('psa_cards')
       .select('*')
-      .eq('status', 'In Stock') // Filter for cards with status 'In Stock'
+      .eq('status', 'In Stock') 
     
     if (error) throw error
 
@@ -44,13 +51,49 @@ export const databaseService = {
 
   async create(card: Omit<PSAResponse, 'id'>): Promise<{ success: boolean; data?: PSAResponse; error?: string }> {
 
-    const normalizedCard = normalizeForDB(card);
+    const userId = await this.getCurrentUserId();
+    if (!userId) {
+        console.error("User ID is null. Cannot create card.");
+        return { success: false, error: "User not authenticated." };
+    }
+    const normalizedCard = normalizeForDB(card, userId);
 
     console.log("Creating card:", normalizedCard);
 
     const { data, error } = await supabase
       .from('psa_cards')
       .insert(normalizedCard.PSACert)
+      .select()
+      .single()
+    
+    if (error) {
+        console.error("Error creating card:", error);
+        return { success: false, error: error.message };
+    }
+
+    if (!data) {
+        console.error("Row addition was not successful, no data returned.");
+        return { success: false, error: "Row addition failed." };
+    }
+
+    console.log("Card created:", data);
+
+    return { success: true, data };
+  },
+
+  async createImportCard(card: Omit<ImportCard, 'id'>): Promise<{ success: boolean; data?: ImportCard; error?: string }> {
+
+    const userId = await this.getCurrentUserId();
+    if (!userId) {
+        console.error("User ID is null. Cannot create card.");
+        return { success: false, error: "User not authenticated." };
+    }
+    console.log("Creating card:", card);
+
+
+    const { data, error } = await supabase
+      .from('psa_cards')
+      .insert({...card, user_id: userId})
       .select()
       .single()
     

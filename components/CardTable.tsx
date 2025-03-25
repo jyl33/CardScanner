@@ -22,19 +22,21 @@ import {
 } from '~/components/ui/table';
 import { Text } from '~/components/ui/text';
 import { Button } from '~/components/ui/button';
-import { Search, Filter, Menu, Upload, Download } from 'lucide-react-native';
-
+import { Search, Filter, Menu, Upload, Download, RefreshCw } from 'lucide-react-native';
 // Local imports
 import { DatabasePSACard } from '~/types/databasePSACard';
 import { useCardFilters } from '~/services/useCardFilters';
-import { cardTableStyles } from '~/styles/cardTableStyles';
 import { databaseService } from '~/services/database';
 import { exportToExcel } from '~/services/exportToExcel';
 import CardFilterModal from '~/components/CardFilterModal';
+import ImportModal from './ImportModal';
+import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react'
 
-const MIN_COLUMN_WIDTHS = [250, 120, 120, 50, 50, 100];
+
+const MIN_COLUMN_WIDTHS = [250, 120, 120, 50, 50, 50, 100];
 
 export default function CardTable() {
+
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -54,6 +56,7 @@ export default function CardTable() {
 
   // Menu state
   const [menuVisible, setMenuVisible] = useState(false);
+  const [importModalVisible, setImportModalVisible] = useState(false);
 
   // Use custom filter hook
   const {
@@ -70,17 +73,19 @@ export default function CardTable() {
 
   // Fetch cards
   const fetchCards = async () => {
-    try {
-      const response = await databaseService.getAllCards();
-      if (!response) throw new Error('Failed to fetch cards');
-      setCards(response);
-      console.log("Fetched Cards", response.length);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+
+      try {
+        const response = await databaseService.getAllCards();
+        if (!response) throw new Error('Failed to fetch cards');
+        setCards(response);
+        console.log("Fetched Cards", response.length);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    
   };
 
   // Initial fetch and refresh handler
@@ -108,9 +113,14 @@ export default function CardTable() {
 
   // Handle Import
   const handleImport = () => {
-    // TODO: Implementation for import functionality
-    console.log("Import functionality to be implemented");
     setMenuVisible(false);
+    setImportModalVisible(true);
+  };
+
+  // Handle import completion
+  const handleImportComplete = () => {
+    // Refresh the card list after import
+    fetchCards();
   };
 
   // Identify if we're on desktop (web platform with large screen)
@@ -154,7 +164,7 @@ export default function CardTable() {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      {/* Search Bar */}
+      {/* Top Bar */}
       <View style={{ 
         height: searchBarHeight, 
         paddingHorizontal: 16, 
@@ -167,6 +177,24 @@ export default function CardTable() {
         gap: 8,
         zIndex: 20 // Ensure this is higher than the table
       }}>
+        {/* Refresh Button */}
+        { isDesktop && (<TouchableOpacity 
+          onPress={onRefresh}
+          disabled={refreshing}
+          style={{
+            height: 40,
+            width: 40,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f3f4f6',
+            borderRadius: 8,
+            marginRight: 8
+          }}
+        >
+          <RefreshCw size={20} color={refreshing ? "#9ca3af" : "#6b7280"} />
+        </TouchableOpacity>) }
+        {/* Search Bar */}
         <View style={{
           flex: 1,
           flexDirection: 'row',
@@ -217,22 +245,24 @@ export default function CardTable() {
         </TouchableOpacity>
         
         {/* Hamburger Menu Button */}
-        <View style={{ zIndex: 30 }}>
-          <TouchableOpacity 
-            onPress={() => setMenuVisible(!menuVisible)}
-            style={{
-              height: 40,
-              width: 40,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#f3f4f6',
-              borderRadius: 8,
-            }}
-          >
-            <Menu size={20} color="#6b7280" />
-          </TouchableOpacity>
-        </View>
+        {isDesktop && (
+          <View style={{ zIndex: 30 }}>
+            <TouchableOpacity 
+              onPress={() => setMenuVisible(!menuVisible)}
+              style={{
+                height: 40,
+                width: 40,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#f3f4f6',
+                borderRadius: 8,
+              }}
+            >
+              <Menu size={20} color="#6b7280" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Table Content - Lower z-index */}
@@ -259,9 +289,12 @@ export default function CardTable() {
                   <Text className="font-medium">Cost</Text>
                 </TableHead>
                 <TableHead style={{ width: columnWidths[4] }}>
-                  <Text className="font-medium">Value</Text>
+                  <Text className="font-medium">Ask</Text>
                 </TableHead>
                 <TableHead style={{ width: columnWidths[5] }}>
+                  <Text className="font-medium">Value</Text>
+                </TableHead>
+                <TableHead style={{ width: columnWidths[6] }}>
                   <Text className="font-medium text-right pr-4">Status</Text>
                 </TableHead>
               </TableRow>
@@ -299,9 +332,12 @@ export default function CardTable() {
                         <Text>{item.cost}</Text>
                       </TableCell>
                       <TableCell style={{ width: columnWidths[4] }}>
-                        <Text>{item.value}</Text>
+                        <Text>{item.ask}</Text>
                       </TableCell>
                       <TableCell style={{ width: columnWidths[5] }}>
+                        <Text>{item.value}</Text>
+                      </TableCell>
+                      <TableCell style={{ width: columnWidths[6] }}>
                         <Text className="text-right pr-4">{item.status}</Text>
                       </TableCell>
                     </TableRow>
@@ -343,6 +379,13 @@ export default function CardTable() {
         filterOptions={filterOptions}
         resetFilters={resetFilters}
         {...filterProps}
+      />
+
+      {/* Import Modal */}
+      <ImportModal
+        visible={importModalVisible}
+        onClose={() => setImportModalVisible(false)}
+        onImportComplete={handleImportComplete}
       />
 
       {/* Dropdown Menu - Use Modal for better handling */}

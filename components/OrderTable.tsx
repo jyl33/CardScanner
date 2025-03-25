@@ -44,6 +44,14 @@ export default function OrderTable() {
     fetchOrders();
   }, []);
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}-${day}-${year}`;
+  };
+
   // Filter orders based on search query
   const filteredOrders = useMemo(() => {
     if (!searchQuery.trim()) return orders;
@@ -54,7 +62,7 @@ export default function OrderTable() {
       return (
         order.order_number?.toString().toLowerCase().includes(query) ||
         order.buyer_name?.toLowerCase().includes(query) ||
-        formatDate(order.order_date).includes(query) ||
+        formatDate(order?.order_date)?.includes(query) ||
         order.total_cost?.toString().includes(query) ||
         order.quantity?.toString().includes(query)
       );
@@ -71,14 +79,6 @@ export default function OrderTable() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const day = String(date.getDate()).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${month}-${day}-${year}`;
   };
 
   if (loading) {

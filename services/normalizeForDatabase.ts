@@ -2,7 +2,7 @@ import { PSAResponse } from "~/types/psaResponse";
 import { NormalizedPSACard } from "@/types/normalizedPSACard";
 
 
-export const normalizeForDB = (psaResponse: PSAResponse): NormalizedPSACard => {
+export const normalizeForDB = (psaResponse: PSAResponse, userId: string): NormalizedPSACard => {
   return {
     PSACert: {
       brand: psaResponse.PSACert.Brand,
@@ -23,7 +23,9 @@ export const normalizeForDB = (psaResponse: PSAResponse): NormalizedPSACard => {
       total_population_with_qualifier: psaResponse.PSACert.TotalPopulationWithQualifier,
       variety: psaResponse.PSACert.Variety,
       year: psaResponse.PSACert.Year,
-      cost: psaResponse.PSACert.Cost
+      cost: psaResponse.PSACert.Cost,
+      ask: psaResponse.PSACert.Ask,
+      user_id: userId
     }
   };
 };

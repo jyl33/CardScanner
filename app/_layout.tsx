@@ -9,16 +9,17 @@ import '~/global.css';
   import { useColorScheme } from '~/lib/useColorScheme';
   import { ThemeToggle } from '@/components/ThemeToggle';
   import { PortalHost } from '@rn-primitives/portal';
-
+  import { useSession } from '@/hooks/useSession';
+  import AuthScreen from '@/components/Authentication';
 
   const LIGHT_THEME: Theme = {
     ...DefaultTheme,
     colors: NAV_THEME.light,
   };
-  const DARK_THEME: Theme = {
+ /*  const DARK_THEME: Theme = {
     ...DarkTheme,
     colors: NAV_THEME.dark,
-  };
+  }; */
 
   export {
   // Catch any errors thrown by the Layout component.
@@ -26,8 +27,11 @@ import '~/global.css';
   } from 'expo-router';
 
   export default function RootLayout() {
+
+    const session = useSession()
+
     const hasMounted = React.useRef(false);
-    const { colorScheme, isDarkColorScheme } = useColorScheme();
+    //const { colorScheme, isDarkColorScheme } = useColorScheme();
     const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
 
     useIsomorphicLayoutEffect(() => {
@@ -47,10 +51,16 @@ import '~/global.css';
       return null;
     }
 
+
+    // If no session, render auth screen
+    if (!session) {
+      return <AuthScreen />
+    }
+
     return (
       <>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+        <ThemeProvider value={LIGHT_THEME}>
+          <StatusBar style={'light'} />
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false, headerRight: () => <ThemeToggle /> }} />
           </Stack>

@@ -68,6 +68,8 @@ export const cardTableStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'transparent'
   },
   footer: {
     height: 48,
