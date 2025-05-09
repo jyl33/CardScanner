@@ -1,50 +1,12 @@
-# Welcome to your Expo app 👋
+# CardScanner
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This app allows for inventory, order and customer management for dealers/buyers of trading sports cards. Built to reduce manual time spent on adding/removing inventory by utilizing the existing QR codes on PSA graded cards.
 
-## Get started
+Features include:
+* Inventory management - Scanning in cards, bulk adding cards from spreadsheet, adding cards manually, exporting inventory lists, viewing and filtering inventory
+* PSA integration - automatically pull card info from the PSA database when scanning in cards (Via public PSA API)
+* Order management - create new order via scanning or selecting existing cards, automatically calculate profit margin
+* Buyer/Seller management - attribute orders to buyers to track buyer spend and relationship
+* Mobile first approach - compatible with iOS, andriod and desktop devices. Mobile first experience allows for ease of use on the go (card shows, shops, etc.)
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Built with Expo and React Native for cross-platform mobile development, with Supabase providing the backend database and authentication services. UI enhanced using React Native Community components, Lucide React icons, and Tailwind CSS
