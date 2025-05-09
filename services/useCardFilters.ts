@@ -63,8 +63,6 @@ export const useCardFilters = (cards: DatabasePSACard[]) => {
       resetFilters();
   }, []) 
 
-
-
   // Update max price and year ranges when filter options load
   useEffect(() => {
 

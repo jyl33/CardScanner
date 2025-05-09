@@ -1,8 +1,8 @@
 import { FlashList } from '@shopify/flash-list';
-import { View, ActivityIndicator, ScrollView, useWindowDimensions, TextInput, Platform } from 'react-native';
+import { View, ActivityIndicator, ScrollView, useWindowDimensions, TextInput, Platform, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as React from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -13,15 +13,14 @@ import {
   TableRow,
 } from '~/components/ui/table';
 import { Text } from '~/components/ui/text';
-import { databaseService } from '@/services/database';
+import { Search, Filter, RefreshCw } from 'lucide-react-native';
+import OrderFilterModal from './OrderFilterModal';
+import { useOrderFilters } from '@/services/useOrderFilters';
 import { Order } from '@/types/order';
-import { CircleMinus } from 'lucide-react-native';
-import { Search } from 'lucide-react-native';
+import { exportToExcel } from '@/services/exportToExcel';
+
 
 const MIN_COLUMN_WIDTHS = [100, 100, 50, 50, 50];
-
-//TODO: NEEDS TO BE ABLE TO CLICK INTO AN ORDER 
-// AND VIEW DETAILS OF ORDER
 
 export default function OrderTable() {
   const { width, height } = useWindowDimensions();
@@ -34,52 +33,26 @@ export default function OrderTable() {
     });
   }, [width]);
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    console.log("Getting Orders")
-    fetchOrders();
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const day = String(date.getDate()).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${month}-${day}-${year}`;
-  };
-
-  // Filter orders based on search query
-  const filteredOrders = useMemo(() => {
-    if (!searchQuery.trim()) return orders;
-    
-    const query = searchQuery.toLowerCase().trim();
-    return orders.filter(order => {
-      // Search across multiple fields
-      return (
-        order.order_number?.toString().toLowerCase().includes(query) ||
-        order.buyer_name?.toLowerCase().includes(query) ||
-        formatDate(order?.order_date)?.includes(query) ||
-        order.total_cost?.toString().includes(query) ||
-        order.quantity?.toString().includes(query)
-      );
-    });
-  }, [orders, searchQuery]);
-
-  const fetchOrders = async () => {
-    try {
-      const response = await databaseService.getAllOrders();
-      if (!response) throw new Error('Failed to fetch orders');
-      setOrders(response);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  
+  // Use the custom hook for order filtering and data loading
+  const {
+    orders,
+    filteredOrders,
+    loading, 
+    error,
+    refreshing,
+    searchQuery,
+    setSearchQuery,
+    handleRefresh,
+    activeFilters,
+    filterState,
+    buyerOptions,
+    updateFilter,
+    resetFilters
+  } = useOrderFilters();
 
   if (loading) {
     return (
@@ -97,6 +70,26 @@ export default function OrderTable() {
     );
   }
 
+    // Handle Excel export
+    const handleExport = () => {
+      //TODO: create function to handle export of filtered orders in exportToExcel.ts
+      exportToExcel(filteredOrders);
+      setMenuVisible(false);
+    };
+  
+    // Handle Import
+    const handleImport = () => {
+      setMenuVisible(false);
+      setImportModalVisible(true);
+    };
+  
+    // Handle import completion
+    const handleImportComplete = () => {
+      // Refresh the order list after import
+      handleRefresh();
+    };
+  
+
   // Identify if we're on desktop (web platform with large screen)
   const isDesktop = Platform.OS === 'web' && width > 768;
   
@@ -111,8 +104,11 @@ export default function OrderTable() {
   
   const availableHeight = height - headerHeight - footerHeight - searchBarHeight - tabBarHeight - insets.top - insets.bottom - desktopFooterPadding;
   
+
+  console.log("Buyer options", buyerOptions);
+
   return (
-    <View style={{height: isDesktop ? '100%' : height - insets.top - insets.bottom - tabBarHeight,}}>
+    <View style={{height: isDesktop ? '100%' : height - insets.top - insets.bottom - tabBarHeight}}>
       {/* Search Bar */}
       <View style={{ 
         height: searchBarHeight, 
@@ -121,8 +117,25 @@ export default function OrderTable() {
         borderBottomWidth: 1,
         borderBottomColor: '#e5e7eb',
         flexDirection: 'row',
-        alignItems: 'center'
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 6
       }}>
+
+        {isDesktop && (<TouchableOpacity
+          onPress={handleRefresh}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 8,
+            backgroundColor: '#f3f4f6',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <RefreshCw size={20} color="#6b7280" />
+        </TouchableOpacity>)}
+
         <View style={{
           flex: 1,
           flexDirection: 'row',
@@ -132,7 +145,6 @@ export default function OrderTable() {
           paddingHorizontal: 12,
           height: 40
         }}>
-          {/* If you have lucide icons installed, you can use this */}
           <Search size={20} color="#6b7280" style={{ marginRight: 8 }} />
           <TextInput
             style={{ flex: 1, fontSize: 16 }}
@@ -142,6 +154,37 @@ export default function OrderTable() {
             clearButtonMode="while-editing"
           />
         </View>
+        
+        <TouchableOpacity
+          onPress={() => setFilterModalVisible(true)}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 8,
+            backgroundColor: '#f3f4f6',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <View>
+            <Filter size={20} color={activeFilters > 0 ? "#0ea5e9" : "#6b7280"} />
+            {activeFilters > 0 && (
+              <View style={{
+                position: 'absolute',
+                top: -5,
+                right: -5,
+                backgroundColor: '#0ea5e9',
+                borderRadius: 10,
+                minWidth: 20,
+                height: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>{activeFilters}</Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
       </View>
       
       <ScrollView 
@@ -198,11 +241,14 @@ export default function OrderTable() {
                   </TableRow>
                 )}
                 keyExtractor={(item) => item.id.toString()}
+                onRefresh={handleRefresh}
+                refreshing={refreshing}
               />
             </View>
           </TableBody>
         </Table>
       </ScrollView>
+      
       <View style={{ 
          height: footerHeight, 
          backgroundColor: 'white', 
@@ -213,8 +259,28 @@ export default function OrderTable() {
          alignItems: 'center',
          paddingHorizontal: 15
       }}>
-        <Text>Orders: {orders.length}{searchQuery.trim() ? ` | Filtered: ${filteredOrders.length}` : ''}</Text>
+        <Text>Orders: {orders.length}{(searchQuery.trim() || activeFilters > 0) ? ` of ${filteredOrders.length}` : ''}</Text>
       </View>
+      
+      {/* Order Filter Modal Component */}
+      <OrderFilterModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        filterState={filterState}
+        buyerOptions={buyerOptions}
+        onUpdateFilter={updateFilter}
+        onResetFilters={resetFilters}
+      />
     </View>
   );
 }
+
+// Helper function for formatting dates
+export const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${month}-${day}-${year}`;
+};

@@ -1,6 +1,7 @@
 import { Platform, Share, Alert } from 'react-native';
 import * as XLSX from 'xlsx';
 import { DatabasePSACard } from '@/types/databasePSACard';
+import { Order } from '@/types/order';
 
 export const exportToExcel = async (filteredCards: DatabasePSACard[]) => {
   try {
